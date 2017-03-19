@@ -55,3 +55,4 @@ if __name__ == "__main__":
     current.increment(500)
     print(current)
     print(current + Time(1,11,11))
+    print(current.__add__(Time(1,11,11)))
