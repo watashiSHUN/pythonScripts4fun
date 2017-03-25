@@ -6,6 +6,7 @@
 from lxml import html
 import requests
 import sys
+import os
 
 # TODO login while reading user input
 loginUrl = 'http://www.sis001.com/forum/logging.php?action=login'
@@ -56,16 +57,26 @@ def search(begin,length,string):
                 #     print(',', len(threadPages[0]), end ="")
 
 if __name__ == "__main__":
-    if(len(sys.argv) > 1):
+    try:
+        lastRequestEnd = max([int(fileName[:-4]) for fileName in os.listdir()])+1
+    except:
         lastRequestEnd = 0
+    if(len(sys.argv) > 1):
+        # search for the current folder, if already have one, continue
         for arg in sys.argv[1:]:
             lastRequestEnd = downloads(arg,lastRequestEnd)
     else:
         # stdin user interface
-        print("menu: 1. search title keyword")
-        option = int(input())
-        if option == 1:
-            pages = int(input("how many pages?"))
-            string = input("type string token that you are looking for:")
-            for _ in range(pages):
-                search(_+1,1,string)
+        print("  usage:\n")
+        print("  run this script in a directory where you want to put your downloads\n")
+        print("  >cd \"{0}\"".format(os.getcwd()))
+        print("  >python3 \"{0}\" \"Url1\" \"Url2\" ...".format(__file__))
+        print("  >the first file will have the name \"{0}.jpg\"".format(lastRequestEnd))
+
+        # print("menu: 1. search title keyword")
+        # option = int(input())
+        # if option == 1:
+        #     pages = int(input("how many pages?"))
+        #     string = input("type string token that you are looking for:")
+        #     for _ in range(pages):
+        #         search(_+1,1,string)
