@@ -23,6 +23,8 @@ def helper(fileName):
         with open(fileName,'w') as f:
             f.writelines(newLines)
 
+    return changes
+
 def addSpace(matchObj):
     # print("called")
     matchStr = matchObj.group(0)

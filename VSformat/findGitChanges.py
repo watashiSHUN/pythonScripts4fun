@@ -1,15 +1,18 @@
 from git import Repo
 from os import path
+from xmlFormat import helper
 parentPath = "D:/kudu/"
 cSharpCode = ".cs"
-from xmlFormat import helper
+repo = Repo(parentPath)
+
+def diffIndexAgainstCommit(id):
+    index = repo.index
+    diff = index.diff(id)
+    # return modified, and does not end with ".cs"
+    return [parentPath + d.a_path for d in diff.iter_change_type('M') if d.a_path[-3:] != cSharpCode] #TODO yield
+
 if __name__ == "__main__":
-    repo = Repo(parentPath)
-    hcommit = repo.head.commit
-    # print(hcommit)
-    diffObjects = hcommit.diff() # of type diffIndex
-    for diff in diffObjects.iter_change_type('M'):
-        relativePath = diff.a_path
-        if relativePath[-3:] != cSharpCode:
-            fPath = parentPath+relativePath
-            helper(fPath)
+    for fPath in diffIndexAgainstCommit('e8fce7a78a7ff261f44c9ddf60d57186efa4a2b1'):
+        print(fPath)
+        if helper(fPath):
+            print("above lines are modified")
