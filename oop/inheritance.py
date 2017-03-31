@@ -1,4 +1,10 @@
 #! python3
+def printAttributes(instance):
+    for aStr in dir(instance):
+        att = getattr(instance,aStr)
+        if not callable(att):
+            print(aStr,att)
+
 class A:
     b = 456
     def m(self):
@@ -29,5 +35,7 @@ if __name__ == "__main__":
     print(dir(A))
     print(dir(b)) # dir takes care of inheritance
     # dir in python2 does not print __class__ __dict__ special attributes
+    # because they don't have? A.__class__ failed on 2.7.12
     print(A.__dict__)
     print(type(A).__dict__) # special
+    printAttributes(A)
