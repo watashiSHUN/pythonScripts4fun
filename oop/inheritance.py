@@ -17,6 +17,7 @@ class B(A):
 # python change it to type(a).__dict__[x]()
 if __name__ == "__main__":
     a = A()
+    print(A.__subclasses__())
     a.c = 123 # a.__dict__['abc'] = 123
     print(A.__dict__) # class type (instance of type) has their own attributes
     print(a.__dict__) # if object has .__dict__, dynamically add attributes
