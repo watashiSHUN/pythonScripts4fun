@@ -29,11 +29,16 @@ class Tree:
             middle = dirPathSep[self.prefixL:-1]
             for d in middle:
                 if d not in currentDir.subDirs:
-                    currentDir.subDirs[d] = Directory(d)
+                    currentDir.subDirs[d] = Directory(os.sep + d)
+                    # print(currentDir.subDirs, currentDir.dirName)
                 destDir = currentDir.subDirs[d]
                 currentDir.sizeIncrease(finalDir.size)
                 currentDir = destDir
-            currentDir.subDirs[dirName] = finalDir
+            # last one is special, if its the end, assign else update files
+            if dirName not in currentDir.subDirs:
+                currentDir.subDirs[dirName] = finalDir
+            else:
+                currentDir.subDirs[dirName].files = finalDir.files
             currentDir.sizeIncrease(finalDir.size)
         else:
             currentDir.files = finalDir.files
@@ -69,15 +74,20 @@ class File:
     def __init__(self, dirPath, fileName):
         self.fileName = fileName
         self.fullPath = os.path.join(dirPath,fileName)
-        self.size = os.path.getsize(self.fullPath)
+        try:
+            self.size = os.path.getsize(self.fullPath)
+        except:
+            self.size = 0
+            print("failed to retrieve " + self.fullPath)
     def __str__(self, indent = 0):
         spaceIndent = '  '*indent
         return spaceIndent + self.fileName + " : " + str(self.size) + " bytes"
 
-drive = "D:\\pythonScripts4fun"
+drive = "D:\\angularWithASPNETapi"
 t = Tree(drive)
 
 for dirPath, subDirs, files in os.walk(drive, topdown=False): # topdown deal with root at the end
+    #print(dirPath, subDirs, files)
     t.addSubDir(dirPath,files)
-print(t)
+# print(t)
 t.printDirs()
