@@ -10,8 +10,8 @@ class Tree:
     def __str__(self):
         return str(self.root)
 
-    def printDirs(self):
-        print(self.root.dirsOnly())
+    def printDirs(self, levels=100):
+        print(self.root.dirsOnly(levels))
 
     def addSubDir(self,dirPath,fileList):
         currentDir = self.root
@@ -56,17 +56,25 @@ class Directory:
         spaceIndent = '  '*indent
         fs = ''
         ds = ''
-        for f in self.files:
-            fs += self.files[f].__str__(indent=indent+1) + '\n'
-        for d in self.subDirs:
+        dKeys = list(self.subDirs.keys())
+        fKeys = list(self.files.keys())
+        fKeys.sort(key=lambda s: self.files[s].size, reverse=True)
+        dKeys.sort(key=lambda s: self.subDirs[s].size, reverse=True)
+        for d in dKeys:
             ds += self.subDirs[d].__str__(indent=indent+1)
-        return spaceIndent + self.dirName + " : " + str(self.size) + " bytes\n" + fs + ds
+        for f in fKeys:
+            fs += self.files[f].__str__(indent=indent+1) + '\n'
+        return spaceIndent + self.dirName + " : " + str(self.size) + " bytes\n" + ds + fs
 
-    def dirsOnly(self, indent=0):
+    def dirsOnly(self, levels, indent=0):
+        if(levels < 0):
+            return ''
         spaceIndent = '  '*indent
         ds = ''
-        for d in self.subDirs:
-            ds += self.subDirs[d].dirsOnly(indent=indent+1)
+        dKeys = list(self.subDirs.keys())
+        dKeys.sort(key=lambda s: self.subDirs[s].size, reverse=True)
+        for d in dKeys:
+            ds += self.subDirs[d].dirsOnly(levels -1,indent=indent+1)
         return spaceIndent + self.dirName + " : " + str(self.size) + " bytes\n" + ds
 
 
@@ -83,11 +91,11 @@ class File:
         spaceIndent = '  '*indent
         return spaceIndent + self.fileName + " : " + str(self.size) + " bytes"
 
-drive = "D:\\angularWithASPNETapi"
+drive = "C:\\Users\\shucai\\Downloads"
 t = Tree(drive)
 
 for dirPath, subDirs, files in os.walk(drive, topdown=False): # topdown deal with root at the end
     #print(dirPath, subDirs, files)
     t.addSubDir(dirPath,files)
 # print(t)
-t.printDirs()
+t.printDirs(1)
