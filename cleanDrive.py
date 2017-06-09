@@ -1,6 +1,10 @@
  #! /usr/bin/env python3
 import os
 
+GigaBytes = 1073741824 # bytes
+MegaBytes = 1048576 # bytes
+KiloBytes = 1024
+
 class Tree:
     def __init__(self, directory):
         self.root = Directory(directory)
@@ -49,7 +53,7 @@ class Directory:
         self.subDirs = {} # list of directory objects
         self.files = {} # list of file object
         self.dirName = dirName
-        self.size = size
+        self.size = Bytes(size)
     def sizeIncrease(self, increase):
         self.size += increase
     def __str__(self,indent=0):
@@ -64,7 +68,7 @@ class Directory:
             ds += self.subDirs[d].__str__(indent=indent+1)
         for f in fKeys:
             fs += self.files[f].__str__(indent=indent+1) + '\n'
-        return spaceIndent + self.dirName + " : " + str(self.size) + " bytes\n" + ds + fs
+        return spaceIndent + self.dirName + " : " + str(self.size) + "\n" + ds + fs
 
     def dirsOnly(self, levels, indent=0):
         if(levels < 0):
@@ -75,7 +79,7 @@ class Directory:
         dKeys.sort(key=lambda s: self.subDirs[s].size, reverse=True)
         for d in dKeys:
             ds += self.subDirs[d].dirsOnly(levels -1,indent=indent+1)
-        return spaceIndent + self.dirName + " : " + str(self.size) + " bytes\n" + ds
+        return spaceIndent + self.dirName + " : " + str(self.size) + "\n" + ds
 
 
 class File:
@@ -83,19 +87,40 @@ class File:
         self.fileName = fileName
         self.fullPath = os.path.join(dirPath,fileName)
         try:
-            self.size = os.path.getsize(self.fullPath)
+            self.size = Bytes(os.path.getsize(self.fullPath))
         except:
-            self.size = 0
+            self.size = Bytes(0)
             print("failed to retrieve " + self.fullPath)
     def __str__(self, indent = 0):
         spaceIndent = '  '*indent
-        return spaceIndent + self.fileName + " : " + str(self.size) + " bytes"
+        return spaceIndent + self.fileName + " : " + str(self.size)
 
-drive = "C:\\Users\\shucai\\Downloads"
+# this just shows implementation detail requires no change in the original function
+class Bytes:
+    def __init__(self, bytes):
+        self.bytes = bytes
+    def __str__(self):
+        GB = self.bytes // GigaBytes
+        if GB > 0:
+            return str(GB) + " GBs"
+        MB = self.bytes // MegaBytes
+        if MB > 0:
+            return str(MB) + " MBs"
+        KB = self.bytes // KiloBytes
+        if KB > 0:
+            return str(KB) + " KBs"
+        return str(self.bytes) +  " bytes"
+    def __add__(self, other):
+        return Bytes(self.bytes+other.bytes)
+    def __lt__(self, other):
+        return self.bytes < other.bytes
+
+
+drive = "D:\\kudu"
 t = Tree(drive)
 
 for dirPath, subDirs, files in os.walk(drive, topdown=False): # topdown deal with root at the end
     #print(dirPath, subDirs, files)
     t.addSubDir(dirPath,files)
-# print(t)
+print(t)
 t.printDirs(1)
