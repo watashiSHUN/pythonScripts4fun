@@ -15,6 +15,7 @@ def getPeaks(test):
             result.append(i)
     return result
 
+# greedy ascent algorithm
 def getPeakN(test):
     for i in range(1,len(test)):
         if test[i] <= test[i-1]:
