@@ -9,18 +9,25 @@ class Tree:
     def __init__(self, directory):
         self.root = Directory(directory)
         self.prefix = directory
-        self.prefixL = len(directory.split(os.sep))
+        directoriesInPrefix = directory.split(os.sep)
+        if directoriesInPrefix[-1] == '':
+            self.prefixL = len(directoriesInPrefix)-1
+        else:
+            self.prefixL = len(directoriesInPrefix)
 
     def __str__(self):
         return str(self.root)
 
-    def printDirs(self, levels=100):
-        print(self.root.dirsOnly(levels))
+    def printLvls(self, levels=100):
+        print(self.root.Lvls(levels))
 
     def addSubDir(self,dirPath,fileList):
         currentDir = self.root
         dirPathSep = dirPath.split(os.sep)
         dirName = dirPathSep[-1]
+        if dirName == '':
+            # end with \\
+            dirPathSep = dirPathSep[:-1]
         # create a directory object for this subdir
         finalDir = Directory(os.sep + dirName)
         for f in fileList:
@@ -70,16 +77,23 @@ class Directory:
             fs += self.files[f].__str__(indent=indent+1) + '\n'
         return spaceIndent + self.dirName + " : " + str(self.size) + "\n" + ds + fs
 
-    def dirsOnly(self, levels, indent=0):
+    def Lvls(self, levels, indent=0):
         if(levels < 0):
             return ''
         spaceIndent = '  '*indent
         ds = ''
+        fs = ''
         dKeys = list(self.subDirs.keys())
         dKeys.sort(key=lambda s: self.subDirs[s].size, reverse=True)
         for d in dKeys:
-            ds += self.subDirs[d].dirsOnly(levels -1,indent=indent+1)
-        return spaceIndent + self.dirName + " : " + str(self.size) + "\n" + ds
+            ds += self.subDirs[d].Lvls(levels -1,indent=indent+1)
+        if(levels != 0):
+            #directoryOnly
+            fKeys = list(self.files.keys())
+            fKeys.sort(key=lambda s: self.files[s].size, reverse=True)
+            for f in fKeys:
+                fs += self.files[f].__str__(indent=indent+1) + '\n'
+        return spaceIndent + self.dirName + " : " + str(self.size) + "\n" + ds + fs
 
 
 class File:
@@ -116,11 +130,10 @@ class Bytes:
         return self.bytes < other.bytes
 
 
-drive = "D:\\kudu"
+drive = "C:\\"
 t = Tree(drive)
 
 for dirPath, subDirs, files in os.walk(drive, topdown=False): # topdown deal with root at the end
-    #print(dirPath, subDirs, files)
     t.addSubDir(dirPath,files)
-print(t)
-t.printDirs(1)
+#print(t)
+t.printLvls(1)
