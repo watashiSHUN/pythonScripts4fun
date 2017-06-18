@@ -1,43 +1,57 @@
- #! /usr/bin/python3
 from random import randint
 
+def shunRange(start, end, step):
+    current = start
+    while(current > end):
+        yield current
+        current += step
+
+# print(reversed(shunRange(5,-1,-1))) failed
+print(reversed(range(5))) # class listreverseiterator
+
+# use O(n) extra space
+# if you copy left and right, the divide is not constant time
 def mergeSort(test):
-    if len(test) == 2:
-        if(test[0] > test[1]):
-            temp = test[0]
-            test[0] = test[1]
-            test[1] = temp
-        return test
-    elif len(test) <= 1:
-        return test
-    middle = len(test)//2
-    left = []
-    for i in range(middle):
-        left.append(test[i])
-    right = []
-    for i in range(middle,len(test)):
-        right.append(test[i])
-    sortedLeft = mergeSort(left)
-    sortedRight = mergeSort(right)
-    merge(sortedLeft, sortedRight, test)
-    return test
+    temp = [0]*(len(test)*2)
+    mergeSortRapper(test,0,len(test)-1,temp)
+# rewrite mergeSort() only does divide
 
-def merge(a,b,dest):
-    i = j = 0
-    for c in range(len(dest)):
-        if i >= len(a):
-            dest[c] = b[j]
-            j += 1
-        elif j >= len(b):
-            dest[c] = a[i]
-            i += 1
-        elif a[i] <= b[j]:
-            dest[c] = a[i]
-            i += 1
+def mergeSortRapper(test,start,end, temp):
+    # determine when to stop divide
+    if start >= end:
+        return # already sorted
+    half = (end-start)//2
+    middle = start+half
+    mergeSortRapper(test,start,middle, temp)
+    mergeSortRapper(test,middle+1,end, temp)
+    merge(test,start,half+1,middle+1,end-middle,temp)
+
+# merge only does merge
+def merge(test,a,lenA,b,lenB,temp):
+    b1 = 0 # buffers
+    b2 = len(test)
+    # copy before merge
+    for i in range(lenA):
+        temp[b1+i] = test[a+i]
+    for j in range(lenB):
+        temp[b2+j] = test[b+j]
+    x,y,z = 0,0,0
+    while x < lenA and y < lenB:
+        if(temp[b1+x] < temp[b2+y]):
+            test[a+z] = temp[b1+x]
+            x+=1
         else:
-            dest[c] = b[j]
-            j += 1
-
+            test[a+z] = temp[b2+y]
+            y+=1
+        z += 1
+    while x < lenA:
+        test[a+z] = temp[b1+x]
+        x+=1
+        z+=1
+    while y < lenB:
+        test[a+z] = temp[b2+y]
+        y+=1
+        z+=1
 
 def insertOne(test, index, number):
     test.append(0)
