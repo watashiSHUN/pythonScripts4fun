@@ -2,41 +2,44 @@
 from random import randint
 
 def heapSort(test):
-    for i in range(len(test)):
-        insertHeap(test,test[i],i)
-    for i in range(len(test)-1,-1,-1):
-        test[i] = extractHeap(test,i)
+    for i in range(len(test)//2,-1,-1):
+        bubbleDown(test,i)
+    # for i in range(len(test)):
+    #     insertHeap(test,test[i],i)
+    # both method can build a heap
+    for i in range(len(test)-1,0,-1):
+        # i being the last element
+        test[0],test[i] = test[i],test[0]
+        bubbleDown(test,length=i) # which stop process at i-1
 
-def extractHeap(array,last=None):
-    if last is None:
-        last = len(array)-1
-    returnV = array[0]
-    array[0] = array[last]
-    # bubble down
-    parent = 0
+def bubbleDown(array,parent=None,length=None):
+    if(parent is None):
+        parent = 0
+    if(length is None):
+        length = len(array)
     leftchild = 2*parent+1
-    rightchild = leftchild+1
+    rightchild = 2*parent+2
     while True:
-        if leftchild < last and rightchild < last:
-            if array[parent] < array[leftchild] or array[parent] < array[rightchild]:
-                if array[leftchild] > array[rightchild]:
-                    array[leftchild],array[parent] = array[parent],array[leftchild]
-                    parent = leftchild
+        if leftchild < length and rightchild < length:
+            l = array[leftchild]
+            r = array[rightchild]
+            maxChildren = max(l,r)
+            if array[parent] < maxChildren:
+                if maxChildren == l:
+                    array[parent],array[leftchild],parent = array[leftchild],array[parent],leftchild
                 else:
-                    array[rightchild],array[parent] = array[parent],array[rightchild]
-                    parent = rightchild
-                leftchild = parent*2+1
+                    array[parent],array[rightchild],parent= array[rightchild],array[parent],rightchild
+                leftchild = 2*parent+1
                 rightchild = leftchild+1
             else:
                 break
-        elif leftchild < last:
+        elif leftchild < length:
             if array[parent] < array[leftchild]:
                 array[parent],array[leftchild] = array[leftchild],array[parent]
             break
         else:
             break
-    return returnV
-
+    return
 
 def insertHeap(array,elem,last=None):
     if last is None:
@@ -61,4 +64,5 @@ for i in range(testcases):
     test = [randint(0,50) for x in range(10)]
     heapSort(test)
     if not isSorted(test):
+        print(test)
         print("heapSort failed")
