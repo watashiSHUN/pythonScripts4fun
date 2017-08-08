@@ -4,13 +4,15 @@ from zipfile import ZipFile
 zipA = sys.argv[1]
 zipB = sys.argv[2]
 
-newZip = "new.zip"
-
 with ZipFile(zipA,'r') as zA:
-    fdsA = set(zA.namelist())
+    fdsA = zA.namelist()
     with ZipFile(zipB,'r') as zB:
         fdsB = set(zB.namelist())
-        with ZipFile(newZip,'w') as out:
-            for fd in fdsA.difference(fdsB):
-                if not fd.endswith('/'): # use to determine files, zip standard
-                    out.writestr(fd,zA.read(fd))
+        with ZipFile("difference.zip",'w') as difference:
+            with ZipFile("common.zip",'w') as common:
+                for fd in fdsA:
+                    if not fd.endswith('/'): #zip standard 
+                        if fd in fdsB:
+                            common.writestr(fd,zA.read(fd))
+                        else:
+                            difference.writestr(fd,zA.read(fd))
