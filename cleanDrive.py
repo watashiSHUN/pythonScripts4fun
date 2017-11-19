@@ -5,64 +5,34 @@ GigaBytes = 1073741824 # bytes
 MegaBytes = 1048576 # bytes
 KiloBytes = 1024
 
-class Tree:
-    def __init__(self, directory):
-        self.root = Directory(directory)
-        self.prefix = directory
-        directoriesInPrefix = directory.split(os.sep)
-        if directoriesInPrefix[-1] == '':
-            self.prefixL = len(directoriesInPrefix)-1
-        else:
-            self.prefixL = len(directoriesInPrefix)
-
+# this just shows implementation detail requires no change in the original function
+class Bytes:
+    def __init__(self, bytes):
+        self.bytes = bytes
     def __str__(self):
-        return str(self.root)
-
-    def printLvls(self, levels=100):
-        print(self.root.Lvls(levels))
-
-    def addSubDir(self,dirPath,fileList):
-        currentDir = self.root
-        dirPathSep = dirPath.split(os.sep)
-        dirName = dirPathSep[-1]
-        if dirName == '':
-            # end with \\
-            dirPathSep = dirPathSep[:-1]
-        # create a directory object for this subdir
-        finalDir = Directory(os.sep + dirName)
-        for f in fileList:
-            temp = File(dirPath,f)
-            finalDir.files[f] = temp
-            finalDir.sizeIncrease(temp.size)
-        # update the tree
-
-        if (len(dirPathSep) > self.prefixL):
-            middle = dirPathSep[self.prefixL:-1]
-            for d in middle:
-                if d not in currentDir.subDirs:
-                    currentDir.subDirs[d] = Directory(os.sep + d)
-                    # print(currentDir.subDirs, currentDir.dirName)
-                destDir = currentDir.subDirs[d]
-                currentDir.sizeIncrease(finalDir.size)
-                currentDir = destDir
-            # last one is special, if its the end, assign else update files
-            if dirName not in currentDir.subDirs:
-                currentDir.subDirs[dirName] = finalDir
-            else:
-                currentDir.subDirs[dirName].files = finalDir.files
-            currentDir.sizeIncrease(finalDir.size)
-        else:
-            currentDir.files = finalDir.files
-            currentDir.sizeIncrease(finalDir.size)
+        GB = self.bytes // GigaBytes
+        if GB > 0:
+            return str(GB) + " GBs"
+        MB = self.bytes // MegaBytes
+        if MB > 0:
+            return str(MB) + " MBs"
+        KB = self.bytes // KiloBytes
+        if KB > 0:
+            return str(KB) + " KBs"
+        return str(self.bytes) +  " bytes"
+    def __add__(self, other):
+        return Bytes(self.bytes+other.bytes)
+    def __lt__(self, other):
+        return self.bytes < other.bytes
 
 class Directory:
-    def __init__(self, dirName, size = 0):
-        self.subDirs = {} # list of directory objects
-        self.files = {} # list of file object
+
+    def __init__(self, dirName, size = Bytes(0), subDirs = {}, files = {}):
+        self.subDirs = subDirs
+        self.files = files
         self.dirName = dirName
-        self.size = Bytes(size)
-    def sizeIncrease(self, increase):
-        self.size += increase
+        self.size = size
+
     def __str__(self,indent=0):
         spaceIndent = '  '*indent
         fs = ''
@@ -95,8 +65,8 @@ class Directory:
                 fs += self.files[f].__str__(indent=indent+1) + '\n'
         return spaceIndent + self.dirName + " : " + str(self.size) + "\n" + ds + fs
 
-
 class File:
+
     def __init__(self, dirPath, fileName):
         self.fileName = fileName
         self.fullPath = os.path.join(dirPath,fileName)
@@ -105,35 +75,45 @@ class File:
         except:
             self.size = Bytes(0)
             print("failed to retrieve " + self.fullPath)
+
     def __str__(self, indent = 0):
         spaceIndent = '  '*indent
         return spaceIndent + self.fileName + " : " + str(self.size)
 
-# this just shows implementation detail requires no change in the original function
-class Bytes:
-    def __init__(self, bytes):
-        self.bytes = bytes
-    def __str__(self):
-        GB = self.bytes // GigaBytes
-        if GB > 0:
-            return str(GB) + " GBs"
-        MB = self.bytes // MegaBytes
-        if MB > 0:
-            return str(MB) + " MBs"
-        KB = self.bytes // KiloBytes
-        if KB > 0:
-            return str(KB) + " KBs"
-        return str(self.bytes) +  " bytes"
-    def __add__(self, other):
-        return Bytes(self.bytes+other.bytes)
-    def __lt__(self, other):
-        return self.bytes < other.bytes
 
+# return a tuple
+# need subDirs to tell how much to pop()
+def createDirectory(dirPath, subDirs, files):
+    createdSubDirs = {}
+    subDirSize = Bytes(0)
+    # for debugging
+    # if len(subDirs) > len(globalStack):
+    #     print("error too many subDirs", subDirs, globalStack)
+    for i in range(len(subDirs)):
+        name, sub = globalStack.pop()
+        createdSubDirs[name] = sub
+        subDirSize += sub.size
+    # for debugging
+    # for s in subDirs:
+    #     if (s not in createdSubDirs):
+    #         print("error missing ", s, createdSubDirs, subDirs)
+    currentDirFiles = {}
+    for f in files:
+        newf = File(dirPath, f)
+        currentDirFiles[f] = newf
+        subDirSize += newf.size
 
-drive = "C:\\"
-t = Tree(drive)
+    dirName = dirPath.split("\\")[-1]
+    return (dirName, Directory(dirPath, subDirSize, createdSubDirs, currentDirFiles))
 
-for dirPath, subDirs, files in os.walk(drive, topdown=False): # topdown deal with root at the end
-    t.addSubDir(dirPath,files)
-#print(t)
-t.printLvls(1)
+drive = "C:\\php"
+print("processing \""+drive+"\"")
+globalStack = [] # tuple (directoryname, directory object)
+
+for dirPath, subDirs, files in os.walk(drive, topdown=False):
+    # topDown=False, is like postorder traversal
+    # for d in subDirs...do things
+    # then return dirpath
+    globalStack.append(createDirectory(dirPath, subDirs, files))
+
+print(globalStack[0][1].Lvls(2))
