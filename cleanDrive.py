@@ -78,13 +78,12 @@ class File:
 
     def __init__(self, dirPath, fileName):
         self.fileName = fileName
-        self.fullPath = os.path.join(dirPath,fileName)
-        try:
-            self.size = Bytes(os.path.getsize(self.fullPath))
-        except ex:
-            # path exceed 260 length limit
-            self.size = Bytes(0)
-            print("failed to retrieve " + self.fullPath)
+        fullName = os.path.join(dirPath,fileName)
+        size = 0
+        if os.path.exists(fullName):
+            # os.walk will return symlink
+            size = os.path.getsize(fullName)
+        self.size = Bytes(size)
 
     def __str__(self, indent = 0):
         spaceIndent = '  '*indent
@@ -130,6 +129,8 @@ drive = "C:\\"
 print("processing \""+drive+"\"")
 globalStack = [] # tuple (directoryname, directory object)
 
+# TODO replace with os.scandir
+# TODO once scanded, wait for user input, to expand
 for dirPath, subDirs, files in os.walk(drive, topdown=False):
     # topDown=False, is like postorder traversal
     # for d in subDirs...do things
